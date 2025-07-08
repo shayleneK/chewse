@@ -61,7 +61,7 @@ class AuthController extends Controller
 
         $request->session()->regenerateToken();
 
-        return Inertia::location(route('login'));
+        return Inertia::location('/Login');
     }
     public function authenticate(Request $request): RedirectResponse
     {
