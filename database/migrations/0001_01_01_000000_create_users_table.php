@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->string('password');
+            $table->boolean('has_onboarded')->default(false);
             $table->rememberToken();
             $table->timestamps();
         });
