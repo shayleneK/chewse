@@ -1,5 +1,6 @@
 <script setup>
 import TopNav from "../components/TopNav.vue";
+import Chatbot from '@/Components/Chatbot.vue'
 </script>
 <template>
     <div class="flex min-h-screen flex-col bg-egg">
@@ -7,5 +8,6 @@ import TopNav from "../components/TopNav.vue";
         <main>
             <slot />
         </main>
+        <Chatbot />
     </div>
 </template>

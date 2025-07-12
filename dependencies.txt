@@ -1,0 +1,4 @@
+npm i vite, 
+composer install,
+composer require guzzlehttp/guzzle
+npm install -D tailwindcss postcss autoprefixer

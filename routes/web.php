@@ -4,6 +4,8 @@ use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\ChatbotController;
+
 
 Route::get('/', function () {
     return Inertia::render('Register');
@@ -21,3 +23,6 @@ Route::get('/Login', function () {
 Route::post('/login', [AuthController::class, 'login'])->name('auth.login');
 Route::post('/register', [AuthController::class, 'register'])->name('auth.register');
 Route::post('/logout', [AuthController::class, 'logout'])->name('auth.logout');
+
+
+Route::post('/chatbot', [ChatbotController::class, 'sendMessage']);

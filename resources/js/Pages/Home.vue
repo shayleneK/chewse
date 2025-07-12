@@ -10,14 +10,14 @@ const showOnboardingModal = ref(false);
 const user = usePage().props.auth.user;
 
 onMounted(() => {
-    if (user.has_onboarded === false) {
+    /* if (user.has_onboarded === false) {
         showModal("onboarding");
-    }
+    } */
 });
 </script>
 <template>
     <div>
         <h1>Home</h1>
     </div>
-    <OnboardingModal :show="activeModal === 'onboarding'" @close="closeModal" />
+    <!-- <OnboardingModal :show="activeModal === 'onboarding'" @close="closeModal" /> -->
 </template>
