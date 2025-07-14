@@ -5,15 +5,15 @@ use Inertia\Inertia;
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ChatbotController;
-
+use App\Http\Controllers\RecipesController;
 
 Route::get('/', function () {
     return Inertia::render('Register');
 });
 
-Route::get('/Home', function () {
-    return Inertia::render('Home');
-})->name('home');
+Route::get('/Home', [RecipesController::class, 'index'])->name('recipe.index');
+
+Route::get('/Recipe/{id}/show', [RecipesController::class, 'show'])->name('recipe.show');
 
 Route::get('/Login', function () {
     return Inertia::render('Login');
@@ -25,4 +25,4 @@ Route::post('/register', [AuthController::class, 'register'])->name('auth.regist
 Route::post('/logout', [AuthController::class, 'logout'])->name('auth.logout');
 
 
-Route::post('/chatbot', [ChatbotController::class, 'sendMessage']);
+Route::post('/chatbot', [ChatbotController::class, 'sendMessage'])->name('chatbot.sendMessage');

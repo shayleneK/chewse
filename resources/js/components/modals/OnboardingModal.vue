@@ -40,6 +40,7 @@ const q_index = ref(0);
 
 function submit() {
     console.log("Answers:", answers.value);
+    emit("close");
     // Use fetch/axios/Inertia post here
 }
 </script>

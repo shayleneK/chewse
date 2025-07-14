@@ -9,7 +9,13 @@ import { Head, Link, useForm, usePage } from "@inertiajs/vue3";
             >
                 <strong class="text-white">CHEWSE</strong>
                 <div class="flex gap-10 text-darkchocolate">
-                    <div v-if="$page.props.auth.user">
+                    <div class="flex w-full" v-if="$page.props.auth.user">
+                        <a
+                            href="/Home"
+                            class="block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100"
+                            >Home</a
+                        >
+
                         <Link
                             :href="route('auth.logout')"
                             method="post"
