@@ -21,6 +21,7 @@
         "@inertiajs/vue3": "^2.0.14",
         "@vitejs/plugin-vue": "^6.0.0",
         "amqplib": "^0.10.8",
+        "marked": "^16.0.0",
         "tailwind": "^2.3.1",
         "vue": "^3.5.17",
         "ziggy-js": "^2.5.3"

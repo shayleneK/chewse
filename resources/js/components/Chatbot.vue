@@ -29,15 +29,14 @@
                         "
                     >
                         <span
-                            class="inline-block px-3 py-2 rounded-lg max-w-[70%] break-words"
-                            :class="
-                                msg.sender === 'user'
-                                    ? 'bg-rose-100 text-black'
-                                    : 'bg-gray-100 text-black'
-                            "
-                        >
-                            {{ msg.text }}
-                        </span>
+                        class="inline-block px-3 py-2 rounded-lg max-w-[70%] break-words"
+                        :class="
+                            msg.sender === 'user'
+                            ? 'bg-rose-100 text-black'
+                            : 'bg-gray-100 text-black'
+                        "
+                        v-html="msg.text"
+                        ></span>
                     </div>
                 </div>
             </div>
@@ -60,6 +59,7 @@
 <script setup>
 import { ref, watch, nextTick } from "vue";
 import axios from "axios";
+import { marked } from 'marked'
 
 const isOpen = ref(false);
 const userInput = ref("");
@@ -94,7 +94,8 @@ async function sendMessage() {
         });
 
         const reply = res.data.response || "Sorry, I couldn’t understand that.";
-        messages.value.push({ text: reply, sender: "bot" });
+        const replyHtml = marked.parse(reply);
+        messages.value.push({ text: replyHtml, sender: "bot" });
 
         // Update history and confidence
         history.value = res.data.history || history.value;

@@ -26,3 +26,5 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('auth.logout');
 
 
 Route::post('/chatbot', [ChatbotController::class, 'sendMessage'])->name('chatbot.sendMessage');
+
+Route::post('/submit-onboarding', [App\Http\Controllers\OnboardingController::class, 'store']);
