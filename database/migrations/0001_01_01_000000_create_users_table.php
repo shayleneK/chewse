@@ -14,6 +14,8 @@ return new class extends Migration
         Schema::create('users', function (Blueprint $table) {
             $table->id();
             $table->string('name');
+            $table->float('level_value')->nullable();
+            $table->string('level')->nullable();
             $table->string('password');
             $table->boolean('has_onboarded')->default(false);
             $table->rememberToken();

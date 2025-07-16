@@ -2,6 +2,8 @@
 import { useForm } from "@inertiajs/vue3";
 import { defineProps, defineEmits, ref } from "vue";
 import Modal from "./Modal.vue";
+import axios from "axios";
+import { router } from '@inertiajs/vue3';
 
 const emit = defineEmits(["close"]);
 
@@ -39,10 +41,13 @@ const likertValues = [1, 2, 3, 4, 5];
 const q_index = ref(0);
 
 function submit() {
-    console.log("Answers:", answers.value);
-    emit("close");
-    // Use fetch/axios/Inertia post here
+    router.post('/submit-onboarding', {
+        answers: answers.value,
+    }, {
+        onSuccess: () => emit('close')
+    });
 }
+
 </script>
 
 <template>
