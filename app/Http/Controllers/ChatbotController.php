@@ -47,17 +47,17 @@ class ChatbotController extends Controller
             $history[] = [
                 'role' => 'user',
                 'parts' => [[
-                    'text' => "You are a recipe assistant. Respond in exactly 2–4 complete sentences. Do not exceed this limit. $toneInstruction"
+                    'text' => "You are a recipe assistant. Respond in exactly 1 complete sentence. Do not exceed this limit. $toneInstruction"
                 ]]
             ];
         }
 
         // Add current user message to history
+        $instruction = "Start with short words of encouragement then respond in exactly 1 complete sentence. Do not exceed this limit.";
         $history[] = [
             'role' => 'user',
-            'parts' => [['text' => $userMessage]]
+            'parts' => [['text' => $userMessage . $instruction]]
         ];
-
         $payload = ['contents' => $history];
 
         $apiKey = env('GEMINI_API_KEY', '');
@@ -70,6 +70,8 @@ class ChatbotController extends Controller
 
             $responseData = $response->json();
 
+            Log::info('Gemini API raw response:', ['response' => $responseData]);
+
             if (
                 $response->successful() &&
                 isset($responseData['candidates'][0]['content']['parts'][0]['text'])
@@ -77,7 +79,7 @@ class ChatbotController extends Controller
                 $rawText = $responseData['candidates'][0]['content']['parts'][0]['text'];
                 $botResponseText = preg_replace('/(\*\*|__)(.*?)\1/', '$2', $rawText); // remove bold
                 $botResponseText = preg_replace('/(\*|_)(.*?)\1/', '$2', $botResponseText); // remove italic
-
+                
                 // Append bot response to history
                 $history[] = [
                     'role' => 'model',
