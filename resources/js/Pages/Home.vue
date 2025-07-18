@@ -25,36 +25,37 @@ function startRecipe(id) {
 }
 </script>
 <template>
-    <div>
-        <h1 class="text-2xl font-bold mb-4">Recipes</h1>
-
+    <div class="flex flex-col p-5 items-center">
+        <h1 class="font-bold mb-4 text-pink-500 text-4xl">Recipes</h1>
+        <!-- Card -->
         <div
             v-for="recipe in recipes"
             :key="recipe.id"
-            class="mb-8 p-4 border rounded-lg shadow"
+            class="bg-white mb-8 rounded-lg shadow-md flex w-3/4"
         >
-            <div class="flex">
-                <h2 class="text-xl font-semibold">{{ recipe.name }}</h2>
-                <button
-                    class="ml-auto px-4 py-2 bg-blue-500 text-white rounded"
-                    @click="startRecipe(recipe.id)"
-                >
-                    Start Recipe
-                </button>
+            <img :src="recipe.image" alt="" class="w-1/3 h-auto rounded" />
+            <div class="flex flex-col p-4 gap-4 w-full">
+                <div class="flex">
+                    <h2 class="text-xl font-semibold">{{ recipe.name }}</h2>
+                    <button
+                        class="ml-auto px-4 py-2 bg-pink-500 hover:bg-pink-700 transition-colors text-white rounded"
+                        @click="startRecipe(recipe.id)"
+                    >
+                        Start Recipe
+                    </button>
+                </div>
+                <p class="mb-2 text-gray-600">{{ recipe.description }}</p>
+                <h1 class="font-bold">Ingredients</h1>
+                <ol class="list-decimal list-inside space-y-1">
+                    <li
+                        v-for="(ingredient, index) in recipe.ingredients"
+                        :key="index"
+                        class="text-sm text-gray-700"
+                    >
+                        {{ ingredient }}
+                    </li>
+                </ol>
             </div>
-            <img
-                :src="recipe.image"
-                alt=""
-                class="w-1/3 h-auto rounded mt-2 mb-4"
-            />
-            <p class="mb-2 text-gray-600">{{ recipe.description }}</p>
-
-            <h3 class="font-semibold mt-4 mb-2">Steps:</h3>
-            <ol class="list-decimal list-inside space-y-1">
-                <li v-for="(step, index) in recipe.steps" :key="index">
-                    {{ step }}
-                </li>
-            </ol>
         </div>
     </div>
     <OnboardingModal :show="activeModal === 'onboarding'" @close="closeModal" />

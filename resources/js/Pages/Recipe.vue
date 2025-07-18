@@ -8,6 +8,9 @@ const props = defineProps({
 
 const page_index = ref(0);
 
+function previousPage() {
+    page_index.value--;
+}
 function nextPage() {
     page_index.value++;
 }
@@ -43,7 +46,7 @@ function nextPage() {
         <!-- Steps -->
         <div
             v-else-if="page_index > 0 && page_index <= recipe.steps.length"
-            class="p-2"
+            class="p-2 bg-white rounded-md shadow-md"
         >
             <h3 class="font-semibold mb-2">Step {{ page_index }}:</h3>
             <p class="text-lg">{{ recipe.steps[page_index - 1] }}</p>
@@ -57,10 +60,16 @@ function nextPage() {
         </div>
 
         <!-- Navigation Button -->
-        <div class="mt-4">
+        <div class="flex mt-4 gap-4">
+            <button
+                @click="previousPage"
+                class="bg-pink-500 text-white px-4 py-2 rounded hover:bg-pink-300"
+            >
+                Back
+            </button>
             <button
                 @click="nextPage"
-                class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+                class="bg-pink-500 text-white px-4 py-2 rounded hover:bg-pink-300"
             >
                 Next
             </button>

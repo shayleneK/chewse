@@ -46,7 +46,7 @@ const submit = () => {
                     :message="form.errors.password"
                 />
                 <button
-                    class="w-full rounded-lg bg-creampink p-2 text-white transition-colors hover:bg-pink-200"
+                    class="w-full rounded-lg bg-pink-500 p-2 text-white transition-colors hover:bg-pink-200"
                     :disabled="form.processing"
                 >
                     Register

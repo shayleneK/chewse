@@ -38,7 +38,7 @@ const submit = () => {
                     :message="form.errors.password"
                 />
                 <button
-                    class="w-full rounded-lg p-2 bg-creampink text-white transition-colors hover:bg-pink-200"
+                    class="w-full rounded-lg p-2 bg-pink-500 text-white transition-colors hover:bg-pink-200"
                 >
                     Log in
                 </button>

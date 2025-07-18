@@ -3,7 +3,7 @@
         <!-- Floating Button -->
         <button
             @click="toggleChat"
-            class="fixed bottom-4 right-4 bg-rose-500 text-white p-3 rounded-full shadow-lg z-50"
+            class="fixed bottom-4 right-4 bg-pink-500 text-white p-3 rounded-full shadow-lg z-50"
         >
             💬
         </button>
@@ -14,7 +14,7 @@
             class="fixed bottom-20 right-4 w-80 max-h-[80vh] bg-white rounded-xl shadow-xl border flex flex-col z-50"
         >
             <div
-                class="p-3 bg-rose-500 text-white font-bold flex justify-between items-center rounded-t-xl"
+                class="p-3 bg-pink-500 text-white font-bold flex justify-between items-center rounded-t-xl"
             >
                 <span>Cooking Assistant</span>
                 <button @click="toggleChat">✖</button>
@@ -29,13 +29,13 @@
                         "
                     >
                         <span
-                        class="inline-block px-3 py-2 rounded-lg max-w-[70%] break-words"
-                        :class="
-                            msg.sender === 'user'
-                            ? 'bg-rose-100 text-black'
-                            : 'bg-gray-100 text-black'
-                        "
-                        v-html="msg.text"
+                            class="inline-block px-3 py-2 rounded-lg max-w-[70%] break-words"
+                            :class="
+                                msg.sender === 'user'
+                                    ? 'bg-rose-100 text-black'
+                                    : 'bg-gray-100 text-black'
+                            "
+                            v-html="msg.text"
                         ></span>
                     </div>
                 </div>
@@ -59,7 +59,7 @@
 <script setup>
 import { ref, watch, nextTick } from "vue";
 import axios from "axios";
-import { marked } from 'marked'
+import { marked } from "marked";
 
 const isOpen = ref(false);
 const userInput = ref("");
