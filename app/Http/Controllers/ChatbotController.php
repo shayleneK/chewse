@@ -77,24 +77,25 @@ EOT;
             default => "Be friendly and helpful."
         };
 
-        // 👇 Inject recipe context only once at the start of the conversation
-        if (empty($history)) {
-    $recipe = $request->input('recipe');
-    
-    $recipeIntro = isset($recipe['name']) 
-        ? "The user is currently cooking: {$recipe['name']}. " .
-          "Here is the description: {$recipe['description']} " .
-          "Ingredients: " . implode(", ", $recipe['ingredients']) . ". " .
-          "Steps: " . implode(" | ", $recipe['steps']) . "."
-        : "No recipe provided.";
 
-    $history[] = [
-        'role' => 'user',
-        'parts' => [[
-            'text' => "You are a recipe assistant. $toneInstruction\n\n$recipeIntro"
-        ]]
-    ];
-    }
+
+        $recipeIntro = isset($recipe['name'])
+            ? "The user is currently cooking: {$recipe['name']}. " .
+            "Here is the description: {$recipe['description']} " .
+            "Ingredients: " . implode(", ", $recipe['ingredients']) . ". " .
+            "Steps: " . implode(" | ", $recipe['steps']) . "."
+            : "No recipe provided.";
+
+        Log::info('Incoming recipe payload:', ['recipe Intro' => $recipeIntro]);
+
+
+        $history[] = [
+            'role' => 'user',
+            'parts' => [[
+                'text' => "You are a recipe assistant. $toneInstruction\n\n$recipeIntro"
+            ]]
+        ];
+
 
         // Append user message with a soft instruction
         $instruction = "Start with encouragement. Respond in 1–3 complete sentences.";
