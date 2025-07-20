@@ -1,6 +1,7 @@
 <script setup>
 import { useModal } from "@/composables/useModal";
 import { usePage } from "@inertiajs/vue3";
+import { selectedRecipe } from "@/composables/chatbotStore";
 import { Head, router } from "@inertiajs/vue3";
 import axios from "axios";
 import OnboardingModal from "@/components/modals/OnboardingModal.vue";
@@ -10,8 +11,9 @@ const { activeModal, showModal, closeModal } = useModal();
 const showOnboardingModal = ref(false);
 const user = usePage().props.auth.user;
 
-defineProps({
+const { recipes, recipe } = defineProps({
     recipes: Array,
+    recipe: Object
 });
 
 onMounted(() => {
@@ -21,8 +23,13 @@ onMounted(() => {
 });
 
 function startRecipe(id) {
+    const selected = recipes.find(r => r.id === id);
+    if (selected) {
+        selectedRecipe.value = selected; // store globally
+    }
     router.visit(`/Recipe/${id}/show`);
 }
+
 </script>
 <template>
     <div class="flex flex-col p-5 items-center">

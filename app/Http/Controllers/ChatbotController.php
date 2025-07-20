@@ -12,56 +12,99 @@ class ChatbotController extends Controller
     {
         $userMessage = $request->input('message');
         $history = $request->input('history', []);
-        $confidence = $request->input('confidence', 'medium');
+        $confidenceInput = $request->input('confidence');
+        $recipe = $request->input('recipe'); //receive the selected recipe
+        Log::info('Incoming recipe payload:', ['recipe' => $recipe]);
+
 
         if (empty($userMessage)) {
             return response()->json(['error' => 'Message cannot be empty.'], 400);
         }
 
-        // Count the number of user questions in history
-        $questionCount = collect($history)
-            ->where('role', 'user')
-            ->filter(
-                fn($msg) =>
-                isset($msg['parts'][0]['text']) &&
-                    str_ends_with(trim($msg['parts'][0]['text']), '?')
-            )->count();
+        $apiKey = env('GEMINI_API_KEY', '');
+        $apiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={$apiKey}";
 
-        // Dynamically adjust confidence level
-        if ($questionCount >= 10 && $confidence !== 'low') {
-            $confidence = 'low';
-        } elseif ($questionCount >= 5 && $confidence === 'high') {
-            $confidence = 'medium';
+        $confidence = 'medium'; // Default fallback
+
+        if (!is_null($confidenceInput)) {
+            $confidencePrompt = <<<EOT
+Classify the following user message as 'low', 'medium', or 'high' confidence. Only reply with one of these words and nothing else.
+
+Examples:
+Low: "I don't know what to do", "I'm lost", "I think I messed up", "I'm feeling stuck"
+Medium: "That was okay", "I did alright", "I'm not sure"
+High: "That was easy", "I nailed it", "I'm confident", "I want more"
+
+Message: "{$userMessage}"
+EOT;
+
+            $confidencePayload = [
+                'contents' => [
+                    [
+                        'role' => 'user',
+                        'parts' => [
+                            ['text' => $confidencePrompt]
+                        ]
+                    ]
+                ]
+            ];
+
+            try {
+                $confidenceResponse = Http::withHeaders([
+                    'Content-Type' => 'application/json',
+                ])->post($apiUrl, $confidencePayload);
+
+                $confidenceData = $confidenceResponse->json();
+
+                if (
+                    $confidenceResponse->successful() &&
+                    isset($confidenceData['candidates'][0]['content']['parts'][0]['text'])
+                ) {
+                    $classified = strtolower(trim($confidenceData['candidates'][0]['content']['parts'][0]['text']));
+                    if (in_array($classified, ['low', 'medium', 'high'])) {
+                        $confidence = $classified;
+                    }
+                }
+            } catch (\Exception $e) {
+                Log::warning('Confidence classification failed:', ['message' => $e->getMessage()]);
+            }
         }
 
-        // Set tone instruction based on confidence
         $toneInstruction = match ($confidence) {
-            'low' => "The user is a complete beginner. Be extremely gentle, patient, and encouraging. Avoid any technical jargon. Validate their concerns. Do not use ",
+            'low' => "The user is a complete beginner. Be extremely gentle, patient, and encouraging. Avoid any technical jargon. Validate their concerns.",
             'medium' => "The user has some cooking experience. Use a friendly and supportive tone. Assume basic understanding of cooking terms. Explain tips clearly and offer help when needed.",
             'high' => "The user is confident and experienced. Use a concise, expert tone. Offer advanced tips, use technical language when appropriate, and keep explanations efficient unless asked.",
             default => "Be friendly and helpful."
         };
 
-        // Start the conversation with tone instructions if no history
+        // 👇 Inject recipe context only once at the start of the conversation
         if (empty($history)) {
-            $history[] = [
-                'role' => 'user',
-                'parts' => [[
-                    'text' => "You are a recipe assistant. Respond in exactly 1 complete sentence. Do not exceed this limit. $toneInstruction"
-                ]]
-            ];
-        }
+    $recipe = $request->input('recipe');
+    
+    $recipeIntro = isset($recipe['name']) 
+        ? "The user is currently cooking: {$recipe['name']}. " .
+          "Here is the description: {$recipe['description']} " .
+          "Ingredients: " . implode(", ", $recipe['ingredients']) . ". " .
+          "Steps: " . implode(" | ", $recipe['steps']) . "."
+        : "No recipe provided.";
 
-        // Add current user message to history
-        $instruction = "Start with short words of encouragement then respond in exactly 1 complete sentence. Do not exceed this limit.";
+    $history[] = [
+        'role' => 'user',
+        'parts' => [[
+            'text' => "You are a recipe assistant. $toneInstruction\n\n$recipeIntro"
+        ]]
+    ];
+    }
+
+        // Append user message with a soft instruction
+        $instruction = "Start with encouragement. Respond in 1–3 complete sentences.";
         $history[] = [
             'role' => 'user',
-            'parts' => [['text' => $userMessage . $instruction]]
+            'parts' => [['text' => $userMessage . "\n" . $instruction]]
         ];
-        $payload = ['contents' => $history];
 
-        $apiKey = env('GEMINI_API_KEY', '');
-        $apiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={$apiKey}";
+        // Final Gemini API call
+        $payload = ['contents' => $history];
 
         try {
             $response = Http::withHeaders([
@@ -70,17 +113,16 @@ class ChatbotController extends Controller
 
             $responseData = $response->json();
 
-            Log::info('Gemini API raw response:', ['response' => $responseData]);
-
             if (
                 $response->successful() &&
                 isset($responseData['candidates'][0]['content']['parts'][0]['text'])
             ) {
                 $rawText = $responseData['candidates'][0]['content']['parts'][0]['text'];
-                $botResponseText = preg_replace('/(\*\*|__)(.*?)\1/', '$2', $rawText); // remove bold
-                $botResponseText = preg_replace('/(\*|_)(.*?)\1/', '$2', $botResponseText); // remove italic
-                
-                // Append bot response to history
+
+                // Clean markdown styling
+                $botResponseText = preg_replace('/(\*\*|__)(.*?)\1/', '$2', $rawText); // bold
+                $botResponseText = preg_replace('/(\*|_)(.*?)\1/', '$2', $botResponseText); // italic
+
                 $history[] = [
                     'role' => 'model',
                     'parts' => [['text' => $botResponseText]]
@@ -89,7 +131,7 @@ class ChatbotController extends Controller
                 return response()->json([
                     'response' => $botResponseText,
                     'history' => $history,
-                    'confidence' => $confidence
+                    'confidence' => $confidenceInput !== null ? $confidence : null
                 ]);
             } else {
                 Log::error('Gemini API Error:', [
@@ -99,8 +141,8 @@ class ChatbotController extends Controller
                 return response()->json(['error' => 'Failed to get a response from the chatbot. Please try again later.'], 500);
             }
         } catch (\Exception $e) {
-            Log::error('Chatbot API Request Exception:', ['message' => $e->getMessage()]);
-            return response()->json(['error' => 'An unexpected error occurred. Please try again.'], 500);
+            Log::error('Chatbot API Exception:', ['message' => $e->getMessage()]);
+            return response()->json(['error' => 'An unexpected error occurred.'], 500);
         }
     }
 }

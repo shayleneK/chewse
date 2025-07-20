@@ -37,21 +37,22 @@ class AuthController extends Controller
 
     public function login(Request $request)
     {
-        $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'password' => ['required', 'min:8', 'max:255',],
-        ]);
+    $validated = $request->validate([
+        'name' => ['required', 'string', 'max:255'],
+        'password' => ['required', 'min:8', 'max:255'],
+    ]);
 
-        if (Auth::attempt($validated)) {
-            $request->session()->regenerate();
+    if (Auth::attempt($validated)) {
+        $request->session()->regenerate();
 
-            return redirect()->route('home');
-        };
-
-        $user = Auth::user();
-
-        return back();
+        return redirect('/Home'); // ✅ use path or route('home') if named
     }
+
+    return back()->withErrors([
+        'name' => 'Invalid credentials.',
+    ]);
+    }
+
 
     public function logout(Request $request): Response
     {

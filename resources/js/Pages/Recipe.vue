@@ -1,12 +1,19 @@
 <script setup>
 import { Head, router } from "@inertiajs/vue3";
 import axios from "axios";
-import { ref } from "vue";
+import { ref, onMounted } from "vue";
+import { selectedRecipe } from "@/composables/chatbotStore"; // ← import global store
+
 const props = defineProps({
     recipe: Object,
 });
 
 const page_index = ref(0);
+
+// Assign the selected recipe globally when this page loads
+onMounted(() => {
+    selectedRecipe.value = props.recipe;
+});
 
 function previousPage() {
     page_index.value--;
@@ -15,6 +22,7 @@ function nextPage() {
     page_index.value++;
 }
 </script>
+
 
 <template>
     <div class="flex flex-col p-4">
