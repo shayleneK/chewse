@@ -2,7 +2,7 @@
 import { Head, router } from "@inertiajs/vue3";
 import axios from "axios";
 import { ref, onMounted } from "vue";
-import { selectedRecipe } from "@/composables/chatbotStore"; // ← import global store
+import { selectedRecipe, recipeStep } from "@/composables/chatbotStore"; // ← import global store
 
 const props = defineProps({
     recipe: Object,
@@ -17,12 +17,13 @@ onMounted(() => {
 
 function previousPage() {
     page_index.value--;
+    recipeStep.value--;
 }
 function nextPage() {
     page_index.value++;
+    if (page_index.value > 0) recipeStep.value++;
 }
 </script>
-
 
 <template>
     <div class="flex flex-col p-4">

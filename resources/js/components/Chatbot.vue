@@ -58,6 +58,7 @@
 
 <script setup>
 import { selectedRecipe } from "@/composables/chatbotStore";
+import { recipeStep } from "../composables/chatbotStore";
 
 import { ref, watch, nextTick, computed } from "vue";
 import axios from "axios";
@@ -67,14 +68,13 @@ import { usePage } from "@inertiajs/vue3";
 const page = usePage();
 const isHomepage = computed(() => {
     return page.url.toLowerCase().startsWith("/home");
-})
-
-const props = defineProps({
-    recipe: Object
 });
 
-console.log("Chatbot received recipe prop:", props.recipe); 
+const props = defineProps({
+    recipe: Object,
+});
 
+console.log("Chatbot received recipe prop:", props.recipe);
 
 const isOpen = ref(false);
 const userInput = ref("");
@@ -82,7 +82,6 @@ const messages = ref([]);
 const loading = ref(false);
 const chatScroll = ref(null);
 const recipe = selectedRecipe;
-
 
 // Initial state
 const history = ref([]);
@@ -104,25 +103,24 @@ async function sendMessage() {
     loading.value = true;
 
     try {
-    const res = await axios.post("/chatbot", {
-        message,
-        history: history.value,
-        confidence: confidence.value,
-        recipe: selectedRecipe.value,
-    });
+        const res = await axios.post("/chatbot", {
+            message,
+            history: history.value,
+            confidence: confidence.value,
+            recipe: selectedRecipe.value,
+            step: recipeStep.value,
+        });
 
-    const reply = res.data.response || "Sorry, I couldn’t understand that.";
-    const replyHtml = marked.parse(reply);
-    messages.value.push({ text: replyHtml, sender: "bot" });
+        const reply = res.data.response || "Sorry, I couldn’t understand that.";
+        const replyHtml = marked.parse(reply);
+        messages.value.push({ text: replyHtml, sender: "bot" });
 
-    // Update history and confidence
-    history.value = res.data.history || history.value;
-    confidence.value = res.data.confidence || confidence.value;
+        // Update history and confidence
+        history.value = res.data.history || history.value;
+        confidence.value = res.data.confidence || confidence.value;
 
-    
-    console.log("Server confidence:", res.data.confidence);
-    console.log("Frontend confidence state:", confidence.value);
-
+        console.log("Server confidence:", res.data.confidence);
+        console.log("Frontend confidence state:", confidence.value);
     } catch (err) {
         console.error("Chatbot error:", err);
         messages.value.push({
@@ -133,7 +131,6 @@ async function sendMessage() {
         loading.value = false;
         scrollToBottom();
     }
-
 }
 
 // Scroll to bottom when messages change

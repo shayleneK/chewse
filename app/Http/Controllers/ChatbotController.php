@@ -14,7 +14,8 @@ class ChatbotController extends Controller
         $history = $request->input('history', []);
         $confidenceInput = $request->input('confidence');
         $recipe = $request->input('recipe'); //receive the selected recipe
-        Log::info('Incoming recipe payload:', ['recipe' => $recipe]);
+        $step  = $request->input('step');
+        Log::info('Incoming recipe payload:', ['recipe' => $recipe, 'step' => $step]);
 
 
         if (empty($userMessage)) {
@@ -79,12 +80,21 @@ EOT;
 
 
 
-        $recipeIntro = isset($recipe['name'])
-            ? "The user is currently cooking: {$recipe['name']}. " .
-            "Here is the description: {$recipe['description']} " .
-            "Ingredients: " . implode(", ", $recipe['ingredients']) . ". " .
-            "Steps: " . implode(" | ", $recipe['steps']) . "."
-            : "No recipe provided.";
+        $recipeIntro = "No recipe provided.";
+        if (isset($recipe['name'])) {
+            $stepText = '';
+            if (is_numeric($step) && $step > -1 && isset($recipe['steps'][$step])) {
+                $stepText = "You're currently on step " . ($step + 1) . ": {$recipe['steps'][$step]}";
+            } else {
+                $stepText = "Steps: " . implode(" | ", $recipe['steps']) . ".";
+            }
+
+            $recipeIntro = "The user is currently cooking: {$recipe['name']}. " .
+                "Here is the description: {$recipe['description']} " .
+                "Ingredients: " . implode(", ", $recipe['ingredients']) . ". " .
+                $stepText;
+        }
+
 
         Log::info('Incoming recipe payload:', ['recipe Intro' => $recipeIntro]);
 
