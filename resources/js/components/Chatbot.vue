@@ -1,5 +1,17 @@
 <template>
     <div v-if="!isHomepage">
+
+        <!-- Friendly Floating Bubble Message -->
+        <transition name="fade">
+        <div
+            v-if="showBubble && !isOpen"
+            class="fixed bottom-24 right-6 bg-white text-gr ay-800 px-4 py-2 rounded-xl shadow-lg text-sm z-50 max-w-xs"
+        >
+            <span class="italic">Need help? I'm here if you need me!</span>
+            <div class="absolute bottom-[-6px] right-6 w-3 h-3 bg-white transform rotate-45 shadow-md"></div>
+        </div>
+        </transition>
+
         <!-- Floating Button -->
         <button
             @click="toggleChat"
@@ -60,7 +72,7 @@
 import { selectedRecipe } from "@/composables/chatbotStore";
 import { recipeStep } from "../composables/chatbotStore";
 
-import { ref, watch, nextTick, computed } from "vue";
+import { ref, watch, nextTick, computed, onMounted } from "vue";
 import axios from "axios";
 import { marked } from "marked";
 import { usePage } from "@inertiajs/vue3";
@@ -87,10 +99,18 @@ const recipe = selectedRecipe;
 const history = ref([]);
 const confidence = ref("low"); // You can pass this from server/user profile
 
+const showBubble = ref(false);
 function toggleChat() {
     isOpen.value = !isOpen.value;
     if (isOpen.value) scrollToBottom();
 }
+
+onMounted(() => {
+  window.addEventListener("show-chatbot", () => {
+    console.log("📨 show-chatbot event received"); // Log it
+    showBubble.value = true;
+  });
+});
 
 async function sendMessage() {
     const message = userInput.value.trim();
@@ -143,4 +163,8 @@ function scrollToBottom() {
 }
 
 watch(messages, scrollToBottom);
+
+watch(recipeStep, () => {
+    showBubble.value = false;
+});
 </script>
