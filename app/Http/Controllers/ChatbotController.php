@@ -5,11 +5,14 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
+
 
 class ChatbotController extends Controller
 {
     public function sendMessage(Request $request)
     {
+        $user = Auth::user();
         $userMessage = $request->input('message');
         $history = $request->input('history', []);
         $confidenceInput = $request->input('confidence');
@@ -69,6 +72,15 @@ EOT;
                     } else {
                         $confidence = 'high';
                     }
+                }
+
+                if ($user) {
+                    $alpha = 0.2;
+                    $previousScore = $user->level_value ?? 50; // fallback baseline
+                    $newScore = round($alpha * $score + (1 - $alpha) * $previousScore);
+
+                    $user->level_value = $newScore;
+                    $user->save();
                 }
             } catch (\Exception $e) {
                 Log::warning('Confidence classification failed:', ['message' => $e->getMessage()]);
