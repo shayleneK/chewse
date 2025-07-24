@@ -29,8 +29,7 @@ class ChatbotController extends Controller
 
         if (!is_null($confidenceInput)) {
             $confidencePrompt = <<<EOT
-Classify the following user message as 'low', 'medium', or 'high' confidence. Only reply with one of these words and nothing else.
-
+Analyze the following user message and return a numeric confidence score between 0 and 100, where 0 is low confidence, 100 is high confidence.
 Examples:
 Low: "I don't know what to do", "I'm lost", "I think I messed up", "I'm feeling stuck"
 Medium: "That was okay", "I did alright", "I'm not sure"
@@ -61,9 +60,14 @@ EOT;
                     $confidenceResponse->successful() &&
                     isset($confidenceData['candidates'][0]['content']['parts'][0]['text'])
                 ) {
-                    $classified = strtolower(trim($confidenceData['candidates'][0]['content']['parts'][0]['text']));
-                    if (in_array($classified, ['low', 'medium', 'high'])) {
-                        $confidence = $classified;
+                    $score = (int)trim($confidenceData['candidates'][0]['content']['parts'][0]['text']);
+                    Log::info('Confidence score:', ['score' => $score]);
+                    if ($score <= 33) {
+                        $confidence = 'low';
+                    } elseif ($score <= 66) {
+                        $confidence = 'medium';
+                    } else {
+                        $confidence = 'high';
                     }
                 }
             } catch (\Exception $e) {
