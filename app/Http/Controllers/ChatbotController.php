@@ -16,6 +16,7 @@ class ChatbotController extends Controller
         $userMessage = $request->input('message');
         $history = $request->input('history', []);
         $confidenceInput = $request->input('confidence');
+        $context = $request->input('context', 'Chat');
         $recipe = $request->input('recipe'); //receive the selected recipe
         $step  = $request->input('step');
         Log::info('Incoming recipe payload:', ['recipe' => $recipe, 'step' => $step]);
@@ -30,9 +31,10 @@ class ChatbotController extends Controller
 
         $confidence = 'medium'; // Default fallback
 
-        if (!is_null($confidenceInput)) {
-            $confidencePrompt = <<<EOT
-Analyze the following user message and return a numeric confidence score between 0 and 100, where 0 is low confidence, 100 is high confidence.
+        // --- Always run confidence analysis ---
+        $confidencePrompt = <<<EOT
+Analyze the following user message and return a numeric confidence score between 0 and 100, where 0 is low confidence, 100 is high confidence. Do NOT include any words, symbols, or explanations — only output the number.
+
 Examples:
 Low: "I don't know what to do", "I'm lost", "I think I messed up", "I'm feeling stuck"
 Medium: "That was okay", "I did alright", "I'm not sure"
@@ -41,51 +43,59 @@ High: "That was easy", "I nailed it", "I'm confident", "I want more"
 Message: "{$userMessage}"
 EOT;
 
-            $confidencePayload = [
-                'contents' => [
-                    [
-                        'role' => 'user',
-                        'parts' => [
-                            ['text' => $confidencePrompt]
-                        ]
+        $confidencePayload = [
+            'contents' => [
+                [
+                    'role' => 'user',
+                    'parts' => [
+                        ['text' => $confidencePrompt]
                     ]
                 ]
-            ];
+            ]
+        ];
 
-            try {
-                $confidenceResponse = Http::withHeaders([
-                    'Content-Type' => 'application/json',
-                ])->post($apiUrl, $confidencePayload);
+        try {
+            $confidenceResponse = Http::withHeaders([
+                'Content-Type' => 'application/json',
+            ])->post($apiUrl, $confidencePayload);
 
-                $confidenceData = $confidenceResponse->json();
+            $confidenceData = $confidenceResponse->json();
 
-                if (
-                    $confidenceResponse->successful() &&
-                    isset($confidenceData['candidates'][0]['content']['parts'][0]['text'])
-                ) {
-                    $score = (int)trim($confidenceData['candidates'][0]['content']['parts'][0]['text']);
-                    Log::info('Confidence score:', ['score' => $score]);
-                    if ($score <= 33) {
-                        $confidence = 'low';
-                    } elseif ($score <= 66) {
-                        $confidence = 'medium';
-                    } else {
-                        $confidence = 'high';
-                    }
+            if (
+                $confidenceResponse->successful() &&
+                isset($confidenceData['candidates'][0]['content']['parts'][0]['text'])
+            ) {
+                $rawConfidence = trim($confidenceData['candidates'][0]['content']['parts'][0]['text']);
+                Log::info('Raw confidence response:', ['raw' => $rawConfidence]);
+
+                $score = (int)$rawConfidence;
+                $score = max(0, min($score, 100)); // Clamp to 0–100
+
+                Log::info('Parsed confidence score:', ['score' => $score]);
+
+                if ($score <= 33) {
+                    $confidence = 'low';
+                } elseif ($score <= 66) {
+                    $confidence = 'medium';
+                } else {
+                    $confidence = 'high';
                 }
 
+                Log::info('Final confidence label:', ['confidence' => $confidence]);
+
                 if ($user) {
-                    $alpha = 0.2;
-                    $previousScore = $user->level_value ?? 50; // fallback baseline
+                    $alpha = $context === 'Recipe Feedback' ? 0.4 : 0.2;
+                    $previousScore = $user->level_value ?? 50;
                     $newScore = round($alpha * $score + (1 - $alpha) * $previousScore);
 
                     $user->level_value = $newScore;
                     $user->save();
                 }
-            } catch (\Exception $e) {
-                Log::warning('Confidence classification failed:', ['message' => $e->getMessage()]);
             }
+        } catch (\Exception $e) {
+            Log::warning('Confidence classification failed:', ['message' => $e->getMessage()]);
         }
+
 
         $toneInstruction = match ($confidence) {
             'low' => "The user is a complete beginner. Be extremely gentle, patient, and encouraging. Avoid any technical jargon. Validate their concerns.",
@@ -124,7 +134,7 @@ EOT;
 
 
         // Append user message with a soft instruction
-        $instruction = "Start with encouragement. Respond in 1–3 complete sentences.";
+        $instruction = "Start with encouragement. Limit empathic response to 1 sentence only.  Be concise.";
         $history[] = [
             'role' => 'user',
             'parts' => [['text' => $userMessage . "\n" . $instruction]]
@@ -158,7 +168,7 @@ EOT;
                 return response()->json([
                     'response' => $botResponseText,
                     'history' => $history,
-                    'confidence' => $confidenceInput !== null ? $confidence : null
+                    'confidence' => $confidence
                 ]);
             } else {
                 Log::error('Gemini API Error:', [

@@ -4,12 +4,10 @@ import Chatbot from "@/Components/Chatbot.vue";
 import ReviewConfidenceTester from "@/components/ReviewConfidenceTester.vue";
 import { selectedRecipe } from "@/composables/chatbotStore";
 import { watch } from "vue";
- 
 
 watch(selectedRecipe, (newRecipe) => {
     console.log("Updated selected recipe for chatbot:", newRecipe);
 });
-
 </script>
 <template>
     <div class="flex min-h-screen flex-col bg-gray-100">
@@ -18,6 +16,6 @@ watch(selectedRecipe, (newRecipe) => {
             <slot />
         </main>
         <Chatbot />
-        <ReviewConfidenceTester />
+        <!-- <ReviewConfidenceTester /> -->
     </div>
 </template>
