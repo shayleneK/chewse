@@ -27,7 +27,8 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('auth.logout');
 
 
 Route::post('/chatbot', [ChatbotController::class, 'sendMessage'])->name('chatbot.sendMessage');
+Route::post('/chatbot-feedback', [ChatbotController::class, 'sendFeedback'])->name('chatbot.sendFeedback');
 
 Route::post('/submit-onboarding', [App\Http\Controllers\OnboardingController::class, 'store']);
 
-Route::post('/confidence', [ReviewController::class, 'classifyConfidence'])->name('confidence.classify');
+//Route::post('/confidence', [ReviewController::class, 'classifyConfidence'])->name('confidence.classify');

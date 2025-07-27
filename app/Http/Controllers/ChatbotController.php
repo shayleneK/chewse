@@ -182,4 +182,109 @@ EOT;
             return response()->json(['error' => 'An unexpected error occurred.'], 500);
         }
     }
+
+    public function sendFeedback(Request $request)
+    {
+        $user = Auth::user();
+        $userMessage = $request->input('message');
+        $history = $request->input('history', []);
+        $recipe = $request->input('recipe');
+        $step  = $request->input('step');
+        $context = 'Recipe Feedback';
+
+        if (empty($userMessage)) {
+            return response()->json(['error' => 'Feedback cannot be empty.'], 400);
+        }
+
+        $apiKey = env('GEMINI_API_KEY', '');
+        $apiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={$apiKey}";
+
+        $confidence = 'medium';
+
+        // --- Confidence analysis ---
+        $confidencePrompt = <<<EOT
+Analyze the following user message and return a numeric confidence score between 0 and 100, where 0 is low confidence, 100 is high confidence. Do NOT include any words, symbols, or explanations — only output the number.
+
+Message: "{$userMessage}"
+EOT;
+
+        $confidencePayload = [
+            'contents' => [
+                [
+                    'role' => 'user',
+                    'parts' => [['text' => $confidencePrompt]]
+                ]
+            ]
+        ];
+
+        try {
+            $confidenceResponse = Http::withHeaders(['Content-Type' => 'application/json'])->post($apiUrl, $confidencePayload);
+            $confidenceData = $confidenceResponse->json();
+
+            if ($confidenceResponse->successful() && isset($confidenceData['candidates'][0]['content']['parts'][0]['text'])) {
+                $rawConfidence = trim($confidenceData['candidates'][0]['content']['parts'][0]['text']);
+                $score = max(0, min((int)$rawConfidence, 100));
+
+                $confidence = $score <= 33 ? 'low' : ($score <= 66 ? 'medium' : 'high');
+
+                if ($user) {
+                    $alpha = 0.4; // Feedback updates confidence more strongly
+                    $previousScore = $user->level_value ?? 50;
+                    $user->level_value = round($alpha * $score + (1 - $alpha) * $previousScore);
+                    $user->save();
+                }
+            }
+        } catch (\Exception $e) {
+            Log::warning('Confidence classification failed (feedback):', ['message' => $e->getMessage()]);
+        }
+
+        // Tone adjustment
+        $toneInstruction = match ($confidence) {
+            'low' => "The user is a complete beginner. Be gentle and encouraging.",
+            'medium' => "The user has some experience. Be friendly and supportive.",
+            'high' => "The user is confident. Be concise and expert.",
+            default => "Be friendly and helpful."
+        };
+
+        // Build recipe context
+        $recipeIntro = "No recipe provided.";
+        if (isset($recipe['name'])) {
+            $stepText = (is_numeric($step) && $step > -1 && isset($recipe['steps'][$step]))
+                ? "You're currently on step " . ($step + 1) . ": {$recipe['steps'][$step]}"
+                : "Steps: " . implode(" | ", $recipe['steps']) . ".";
+            $recipeIntro = "The user is providing feedback about: {$recipe['name']}. Description: {$recipe['description']} Ingredients: " . implode(", ", $recipe['ingredients']) . ". " . $stepText;
+        }
+
+        // Prepend context
+        $history[] = [
+            'role' => 'user',
+            'parts' => [['text' => "You are a recipe assistant receiving feedback. $toneInstruction\n\n$recipeIntro"]]
+        ];
+
+        // Append user feedback
+        $history[] = [
+            'role' => 'user',
+            'parts' => [['text' => $userMessage . "\nAcknowledge their feedback in a polite and concise way."]]
+        ];
+
+        // Final Gemini API call
+        try {
+            $payload = ['contents' => $history];
+            $response = Http::withHeaders(['Content-Type' => 'application/json'])->post($apiUrl, $payload);
+            $responseData = $response->json();
+
+            if ($response->successful() && isset($responseData['candidates'][0]['content']['parts'][0]['text'])) {
+                $botResponseText = preg_replace('/(\*\*|__|\*|_)(.*?)\1/', '$2', $responseData['candidates'][0]['content']['parts'][0]['text']);
+                $history[] = ['role' => 'model', 'parts' => [['text' => $botResponseText]]];
+
+                return redirect('/Home');
+            } else {
+                Log::error('Gemini API Error (feedback):', ['response' => $responseData, 'status' => $response->status()]);
+                return response()->json(['error' => 'Failed to process feedback.'], 500);
+            }
+        } catch (\Exception $e) {
+            Log::error('Chatbot Feedback API Exception:', ['message' => $e->getMessage()]);
+            return response()->json(['error' => 'An unexpected error occurred while processing feedback.'], 500);
+        }
+    }
 }
