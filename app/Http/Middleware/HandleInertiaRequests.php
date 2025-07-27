@@ -41,7 +41,7 @@ class HandleInertiaRequests extends Middleware
 
             // Lazily...
             'auth.user' => fn() => $request->user()
-                ? $request->user()->only('id', 'name', 'has_onboarded')
+                ? $request->user()->only('id', 'name', 'has_onboarded', 'level_value')
                 : null,
         ]);
     }
