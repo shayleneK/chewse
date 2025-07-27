@@ -1,26 +1,34 @@
 <script setup>
 import { ref, onMounted, onBeforeUnmount } from "vue";
+import { useForm } from "@inertiajs/vue3";
 import { selectedRecipe, recipeStep } from "@/composables/chatbotStore";
-import axios from "axios";
 import { marked } from "marked";
+
+const props = defineProps({
+    recipe: Object,
+});
 
 const loading = ref(false);
 const messages = ref([]);
 const history = ref([]);
 const confidence = ref(null);
-const props = defineProps({
-    recipe: Object,
-});
-
-const feedback = ref("");
 const page_index = ref(0);
 let timer = null;
+
+const form = useForm({
+    message: "",
+    history: [],
+    context: "Recipe Feedback",
+    recipe: null,
+    step: 0,
+});
 
 onMounted(() => {
     console.log("📄 Recipe.vue mounted");
     selectedRecipe.value = props.recipe;
     recipeStep.value = 0;
     startInactivityTimer();
+    form.clearErrors();
 });
 
 onBeforeUnmount(() => {
@@ -52,42 +60,36 @@ function nextPage() {
     }
 }
 
-async function submitFeedback() {
-    const feedbackMessage = feedback.value.trim();
-    if (!feedbackMessage) return;
+function submitFeedback() {
+    form.history = history.value;
+    form.recipe = selectedRecipe.value;
+    form.step = recipeStep.value;
 
-    // Push feedback as a "user" message
-    messages.value.push({ text: feedbackMessage, sender: "user" });
-    history.value.push({ role: "user", parts: [{ text: feedbackMessage }] });
-    feedback.value = "";
-    loading.value = true;
+    form.post("/chatbot-feedback", {
+        onStart: () => {
+            loading.value = true;
+        },
+        onSuccess: (res) => {
+            const reply = res.props.response || "Thanks for your feedback!";
+            const replyHtml = marked.parse(reply);
 
-    try {
-        const res = await axios.post("/chatbot", {
-            message: feedbackMessage,
-            history: history.value,
-            context: "Recipe Feedback",
-            recipe: selectedRecipe.value,
-            step: recipeStep.value,
-        });
+            // Push bot reply
+            messages.value.push({ text: replyHtml, sender: "bot" });
 
-        const reply = res.data.response || "Thanks for your feedback!";
-        const replyHtml = marked.parse(reply);
+            // Update history & confidence
+            history.value = res.props.history || history.value;
+            confidence.value = res.props.confidence || confidence.value;
 
-        // Push bot reply
-        messages.value.push({ text: replyHtml, sender: "bot" });
-
-        // Update history & confidence
-        history.value = res.data.history || history.value;
-        confidence.value = res.data.confidence || confidence.value;
-
-        alert("Feedback sent successfully!");
-    } catch (err) {
-        console.error("Feedback error:", err);
-        alert("Something went wrong while submitting feedback.");
-    } finally {
-        loading.value = false;
-    }
+            alert("Feedback sent successfully!");
+            form.reset("message");
+        },
+        onError: () => {
+            alert("Something went wrong while submitting feedback.");
+        },
+        onFinish: () => {
+            loading.value = false;
+        },
+    });
 }
 </script>
 
@@ -146,17 +148,26 @@ async function submitFeedback() {
         <div v-else class="p-4 bg-white rounded-md shadow-md">
             <h3 class="text-2xl font-bold text-pink-600 mb-2">You're done!</h3>
             <p class="text-gray-700 mb-4">How was your experience?</p>
-            <textarea
-                v-model="feedback"
-                placeholder="Leave your feedback here..."
-                class="w-full border border-gray-300 rounded p-2 mb-4"
-            ></textarea>
-            <button
-                class="bg-pink-500 hover:bg-pink-600 text-white font-semibold px-4 py-2 rounded"
-                @click="submitFeedback"
-            >
-                Submit Feedback
-            </button>
+
+            <form @submit.prevent="submitFeedback" class="space-y-4">
+                <textarea
+                    v-model="form.message"
+                    placeholder="Leave your feedback here..."
+                    class="w-full border border-gray-300 rounded p-2 mb-2"
+                ></textarea>
+                <small
+                    class="text-red-500 text-xs"
+                    v-if="form.errors.message"
+                    >{{ form.errors.message }}</small
+                >
+                <button
+                    type="submit"
+                    class="bg-pink-500 hover:bg-pink-600 text-white font-semibold px-4 py-2 rounded"
+                    :disabled="loading || form.processing"
+                >
+                    {{ loading ? "Submitting..." : "Submit Feedback" }}
+                </button>
+            </form>
         </div>
 
         <!-- Navigation -->

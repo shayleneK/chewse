@@ -41,9 +41,9 @@ class RecipesController extends Controller
 
     $recipes = $query->orderByRaw("
         CASE 
-            WHEN difficult = ? THEN 1
-            WHEN difficult = ? THEN 2
-            WHEN difficult = ? THEN 3
+            WHEN difficulty = ? THEN 1
+            WHEN difficulty = ? THEN 2
+            WHEN difficulty = ? THEN 3
             ELSE 4
         END
     ", $order)->get();
