@@ -23,8 +23,8 @@ class OnboardingController extends Controller
 
     $level = match (true) {
     $mean < 2.5 => 'Beginner',
-    $mean < 4.0 => 'Intermediate',
-    default     => 'Advanced',
+    $mean < 4.0 => 'Advanced',
+    default     => 'Master',
 };
 
     $user = Auth::user();

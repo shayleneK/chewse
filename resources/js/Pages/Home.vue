@@ -1,39 +1,95 @@
 <script setup>
-import { useModal } from "@/composables/useModal";
-import { usePage } from "@inertiajs/vue3";
+import { ref, onMounted, watch } from "vue";
+import { router, usePage } from "@inertiajs/vue3";
 import { selectedRecipe } from "@/composables/chatbotStore";
-import { Head, router } from "@inertiajs/vue3";
-import axios from "axios";
 import OnboardingModal from "@/components/modals/OnboardingModal.vue";
-import { ref, onMounted } from "vue";
+import { useModal } from "@/composables/useModal";
+
+const { recipes, selectedDifficulty, popupMessage, redirectRecipeId } = defineProps({
+    recipes: Array,
+    selectedDifficulty: String,
+    popupMessage: String,
+    redirectRecipeId: Number,
+});
+
+const showPopup = ref(false);
+const message = ref("")
+const difficulty = ref(selectedDifficulty || "All");
 
 const { activeModal, showModal, closeModal } = useModal();
-const showOnboardingModal = ref(false);
 const user = usePage().props.auth.user;
-
-const { recipes, recipe } = defineProps({
-    recipes: Array,
-    recipe: Object
-});
 
 onMounted(() => {
     if (user.has_onboarded === false) {
         showModal("onboarding");
     }
+
+    console.log("popupMessage:", popupMessage);
+    console.log("redirectRecipeId: ", redirectRecipeId);
+
+    if (popupMessage) {
+        message.value = popupMessage;
+        showPopup.value = true;
+    }
+});
+
+watch(difficulty, (newVal) => {
+    const query = newVal === "All" ? {} : { difficulty: newVal };
+    router.get("/Home", query, {
+        preserveState: true,
+        preserveScroll: true,
+    });
 });
 
 function startRecipe(id) {
     const selected = recipes.find(r => r.id === id);
     if (selected) {
-        selectedRecipe.value = selected; // store globally
+        selectedRecipe.value = selected;
     }
     router.visit(`/Recipe/${id}/show`);
 }
 
+function goToRedirectRecipe() {
+    if (redirectRecipeId) {
+        router.visit(`/Recipe/${redirectRecipeId}/show`);
+    }
+}
 </script>
+
 <template>
     <div class="flex flex-col p-5 items-center">
         <h1 class="font-bold mb-4 text-pink-500 text-4xl">Recipes</h1>
+
+    
+
+        <div class="mb-6 flex gap-4 items-center">
+        <label class="text-lg font-medium text-gray-700">Filter by Difficulty:</label>
+        <select v-model="difficulty" class="border rounded px-3 py-1">
+            <option value="All">All</option>
+            <option value="Easy">Easy</option>
+            <option value="Medium">Medium</option>
+            <option value="Hard">Hard</option>
+        </select>
+        </div>
+
+        <!-- 💬 Popup -->
+        <div
+        v-if="showPopup"
+        class="mb-6 p-4 bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 w-3/4 rounded shadow"
+        >
+        <div class="flex justify-between items-center">
+            <p>{{ message }}</p>
+            <button
+            v-if="message.includes('challenge') || message.includes('easy')"
+            @click="goToRedirectRecipe"
+            class="ml-4 bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600 text-sm"
+            >
+            Let's Do It!
+            </button>
+            <button @click="showPopup = false" class="text-sm text-yellow-600 hover:underline">Dismiss</button>
+        </div>
+        </div>
+
         <!-- Card -->
         <div
             v-for="recipe in recipes"
