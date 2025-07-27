@@ -38,14 +38,14 @@ class RecipesController extends Controller
 
         $recipes = Recipe::orderByRaw("
         CASE 
-            WHEN difficult = ? THEN 1
-            WHEN difficult = ? THEN 2
-            WHEN difficult = ? THEN 3
+            WHEN difficulty = ? THEN 1
+            WHEN difficulty = ? THEN 2
+            WHEN difficulty = ? THEN 3
             ELSE 4
         END
     ", $order)->get();
 
-        Log::info('Recipes fetched:', ['count' => $recipes->count(), 'difficulties' => $recipes->pluck('difficult')]);
+        Log::info('Recipes fetched:', ['count' => $recipes->count(), 'difficulties' => $recipes->pluck('difficulty')]);
 
         return Inertia::render('Home', [
             'recipes' => $recipes
