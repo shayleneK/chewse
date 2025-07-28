@@ -3,8 +3,8 @@ import { Head, Link, useForm, usePage } from "@inertiajs/vue3";
 import { ref } from "vue";
 import chewseLogo from "./chewse_logo.svg";
 
-const page = usePage();
-const user = page.props.auth.user;
+const user = usePage().props.auth.user;
+
 const dropdownOpen = ref(false);
 
 // Compute confidence level badge

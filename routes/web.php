@@ -12,9 +12,11 @@ Route::get('/', function () {
     return Inertia::render('Register');
 });
 
-Route::get('/Home', [RecipesController::class, 'index'])->name('recipe.index');
+Route::middleware(['auth'])->group(function () {
+    Route::get('/Home', [RecipesController::class, 'index']);
+    Route::get('/Recipe/{id}/show', [RecipesController::class, 'show'])->name('recipe.show');
+});
 
-Route::get('/Recipe/{id}/show', [RecipesController::class, 'show'])->name('recipe.show');
 
 Route::get('/Login', function () {
     return Inertia::render('Login');

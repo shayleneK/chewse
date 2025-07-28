@@ -28,29 +28,30 @@ class AuthController extends Controller
         ]);
 
         $validated['password'] = bcrypt($validated['password']);
+        $validated['level_value'] = 0;
         $user = User::create($validated);
 
         Auth::login($user);
 
-        return redirect('/Home');
+        return Inertia::location('/Home');
     }
 
     public function login(Request $request)
     {
-    $validated = $request->validate([
-        'name' => ['required', 'string', 'max:255'],
-        'password' => ['required', 'min:8', 'max:255'],
-    ]);
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'password' => ['required', 'min:8', 'max:255'],
+        ]);
 
-    if (Auth::attempt($validated)) {
-        $request->session()->regenerate();
+        if (Auth::attempt($validated)) {
+            $request->session()->regenerate();
 
-        return redirect('/Home'); // ✅ use path or route('home') if named
-    }
+            return Inertia::location('/Home');
+        }
 
-    return back()->withErrors([
-        'name' => 'Invalid credentials.',
-    ]);
+        return back()->withErrors([
+            'name' => 'Invalid credentials.',
+        ]);
     }
 
 
