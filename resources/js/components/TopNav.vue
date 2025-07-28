@@ -10,11 +10,11 @@ const dropdownOpen = ref(false);
 // Compute confidence level badge
 const confidence = user?.level_value ?? 50;
 const confidenceLabel =
-    confidence <= 33 ? "Beginner" : confidence <= 66 ? "Advanced" : "Master";
+    confidence <= 40 ? "Beginner" : confidence <= 80 ? "Advanced" : "Master";
 const confidenceColor =
-    confidence <= 33
+    confidence <= 40
         ? "bg-red-500"
-        : confidence <= 66
+        : confidence <= 80
         ? "bg-yellow-500"
         : "bg-green-500";
 
@@ -35,6 +35,7 @@ console.log("User:", user);
 
                 <!-- Navigation Links -->
                 <div class="flex gap-6 items-center">
+                    <a href="/Home">Home</a>
                     <!-- Confidence Badge -->
                     <div v-if="user" class="flex items-center">
                         <span

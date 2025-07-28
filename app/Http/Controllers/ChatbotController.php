@@ -33,14 +33,17 @@ class ChatbotController extends Controller
 
         // --- Always run confidence analysis ---
         $confidencePrompt = <<<EOT
-Analyze the following user message and return a numeric confidence score between 0 and 100, where 0 is low confidence, 100 is high confidence. Do NOT include any words, symbols, or explanations — only output the number.
+Rate the user's confidence about their cooking ability from 0 to 100. 
 
-Examples:
-Low: "I don't know what to do", "I'm lost", "I think I messed up", "I'm feeling stuck"
-Medium: "That was okay", "I did alright", "I'm not sure"
-High: "That was easy", "I nailed it", "I'm confident", "I want more"
+- 0–20: Extremely low confidence (e.g., "I'm scared", "I can't do this", "I'm lost").
+- 21–40: Low confidence (e.g., "I'm unsure", "I need help").
+- 41–60: Moderate confidence (e.g., "I'm okay", "I'm managing").
+- 61–80: High confidence (e.g., "I can do this", "I'm doing well").
+- 81–100: Extremely high confidence (e.g., "That was easy", "I'm great at this").
 
-Message: "{$userMessage}"
+User message: "{$userMessage}"
+
+Return **only a single integer** between 0 and 100.
 EOT;
 
         $confidencePayload = [
@@ -84,9 +87,9 @@ EOT;
                 Log::info('Final confidence label:', ['confidence' => $confidence]);
 
                 if ($user) {
-                    $alpha = $context === 'Recipe Feedback' ? 0.4 : 0.2;
+                    $alpha =  0.15;
                     $previousScore = $user->level_value ?? 50;
-                    $newScore = round($alpha * $score + (1 - $alpha) * $previousScore);
+                    $newScore = $alpha * $score + (1 - $alpha) * $previousScore;
 
                     $user->level_value = $newScore;
                     $user->save();
@@ -227,10 +230,13 @@ EOT;
 
                 $confidence = $score <= 33 ? 'low' : ($score <= 66 ? 'medium' : 'high');
 
+                Log::info("Confidence score: $score");
+
                 if ($user) {
                     $alpha = 0.4; // Feedback updates confidence more strongly
                     $previousScore = $user->level_value ?? 50;
-                    $user->level_value = round($alpha * $score + (1 - $alpha) * $previousScore);
+                    $user->level_value = $alpha * $score + (1 - $alpha) * $previousScore;
+
                     $user->save();
                 }
             }

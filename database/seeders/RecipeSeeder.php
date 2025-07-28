@@ -12,7 +12,7 @@ class RecipeSeeder extends Seeder
         DB::table('recipes')->insert([
             [
                 'url' => 'https://panlasangpinoy.com/chicken-sopas-soup-recipe/',
-                'image' => 'https://www.simplyrecipes.com/thmb/TL9sgDRkhyiU9ed6nPfoFEoOKrA=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/Simply-Recipes-Macaroni-Chicken-Sopas-LEAD-03-8cd1732ce3dd4417b4310ddae8dc2ca0.jpg',
+                'image' => 'https://i.pinimg.com/736x/46/dc/18/46dc18ba4538806b8b52a1d4010b91a4.jpg',
                 'name' => 'Chicken Sopas Soup',
                 'description' => 'A comforting Filipino chicken noodle soup with vegetables and milk, perfect for cold days or when feeling under the weather.',
                 'ingredients' => json_encode([
@@ -158,7 +158,7 @@ class RecipeSeeder extends Seeder
             ],
             [
                 'url' => 'https://panlasangpinoy.com/pork-sinigang-recipe/',
-                'image' => 'https://flavortheglobe.com/wp-content/uploads/2021/06/Filipino-Pork-Sinigang-Recipe.jpg',
+                'image' => 'https://panlasangpinoy.com/wp-content/uploads/2022/09/pork-sinigang-panlasang-pinoy.jpg',
                 'name' => 'Pork Sinigang',
                 'description' => 'A sour and savory Filipino soup made with pork, vegetables, and tamarind broth - a comforting classic that balances tangy, salty, and umami flavors.',
                 'ingredients' => json_encode([
@@ -191,7 +191,7 @@ class RecipeSeeder extends Seeder
             ],
             [
                 'url' => 'https://panlasangpinoy.com/lechon-kawali-recipe/',
-                'image' => 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTQ5vSCMXQTi6bpB_DbX43zdlshIaWjKOeJPg&s',
+                'image' => 'https://www.kawalingpinoy.com/wp-content/uploads/2014/10/crispy-lechon-kawali-4.jpg',
                 'name' => 'Lechon Kawali',
                 'description' => 'Crispy deep-fried pork belly with crackling skin, a beloved Filipino party dish that requires precise technique and timing.',
                 'ingredients' => json_encode([
@@ -220,7 +220,7 @@ class RecipeSeeder extends Seeder
             ],
             [
                 'url' => 'https://panlasangpinoy.com/kare-kare-recipe/',
-                'image' => 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT3L2PInre5vBTfYn-w_GkF75wIHE1EYi_sog&s',
+                'image' => 'https://www.kawalingpinoy.com/wp-content/uploads/2014/01/kare-kare-with-oxtail-1.jpg',
                 'name' => 'Kare-Kare',
                 'description' => 'Rich and creamy Filipino oxtail stew with vegetables, served with bagoong (fermented shrimp paste) - a complex dish requiring patience and skill.',
                 'ingredients' => json_encode([

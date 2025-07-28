@@ -108,7 +108,7 @@ watch(recipeStep, () => {
         <!-- Chat Panel -->
         <div
             v-if="isOpen"
-            class="fixed bottom-20 right-4 w- max-h-[80vh] bg-white rounded-xl shadow-xl border flex flex-col z-50"
+            class="fixed bottom-20 right-4 max-h-[80vh] max-w-[40vh] bg-white rounded-xl shadow-xl border flex flex-col z-50"
         >
             <div
                 class="p-3 bg-pink-500 text-white font-bold flex justify-between items-center rounded-t-xl"
@@ -126,7 +126,7 @@ watch(recipeStep, () => {
                         "
                     >
                         <span
-                            class="inline-block px-3 py-2 rounded-lg max-w-[70%] break-words"
+                            class="inline-block px-3 py-2 rounded-lg break-words"
                             :class="
                                 msg.sender === 'user'
                                     ? 'bg-rose-100 text-black'
