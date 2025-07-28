@@ -10,44 +10,56 @@ use Inertia\Inertia;
 class RecipesController extends Controller
 {
     public function index(Request $request)
-    {
-        $user = auth()->user();
-        $showPopup = false;
-        $level = 'beginner';
+{
+    $user = auth()->user();
+    $showPopup = false;
+    $popupType = null;
+    $level = 'beginner';
 
-        if ($user && $user->level_value !== null) {
-            $value = $user->level_value;
+    if ($user && $user->level_value !== null) {
+        $value = $user->level_value;
 
-            // Determine current level & whether they're near the next
-            if ($value < 40) {
-                $level = 'beginner';
-                if ($value >= 40 - 15) { // within 15 points of 40
-                    $showPopup = true;
-                }
-            } elseif ($value < 80) {
-                $level = 'advanced';
-                if ($value >= 80 - 15) { // within 15 points of 80
-                    $showPopup = true;
-                }
-            } else {
-                $level = 'master';
+        if ($value < 40) {
+            $level = 'beginner';
+            // close to leveling up
+            if ($value >= 40 - 15) {
+                $showPopup = true;
+                $popupType = 'challenge';
+            }
+        } elseif ($value < 80) {
+            $level = 'advanced';
+
+            if ($value >= 80 - 15) {
+                $showPopup = true;
+                $popupType = 'challenge'; // close to master
+            } elseif ($value <= 40 + 15) {
+                $showPopup = true;
+                $popupType = 'easy'; // close to beginner
+            }
+        } else {
+            $level = 'master';
+
+            if ($value <= 80 + 15) {
+                $showPopup = true;
+                $popupType = 'easy'; // close to advanced
             }
         }
+    }
 
-        $order = match ($level) {
-            'beginner' => ['Easy', 'Medium', 'Hard'],
-            'advanced' => ['Medium', 'Hard', 'Easy'],
-            'master' => ['Hard', 'Medium', 'Easy'],
-            default => ['Medium', 'Hard', 'Easy'],
-        };
+    $order = match ($level) {
+        'beginner' => ['Easy', 'Medium', 'Hard'],
+        'advanced' => ['Medium', 'Hard', 'Easy'],
+        'master' => ['Hard', 'Medium', 'Easy'],
+        default => ['Medium', 'Hard', 'Easy'],
+    };
 
-        $difficultyFilter = $request->query('difficulty');
-        $query = Recipe::query();
-        if (in_array($difficultyFilter, ['Easy', 'Medium', 'Hard'])) {
-            $query->where('difficulty', $difficultyFilter);
-        }
+    $difficultyFilter = $request->query('difficulty');
+    $query = Recipe::query();
+    if (in_array($difficultyFilter, ['Easy', 'Medium', 'Hard'])) {
+        $query->where('difficulty', $difficultyFilter);
+    }
 
-        $recipes = $query->orderByRaw("
+    $recipes = $query->orderByRaw("
         CASE 
             WHEN difficulty = ? THEN 1
             WHEN difficulty = ? THEN 2
@@ -56,49 +68,42 @@ class RecipesController extends Controller
         END
     ", $order)->get();
 
-        $popupMessage = null;
-        $redirectRecipeId = null;
+    $popupMessage = null;
+    $redirectRecipeId = null;
 
-        if ($showPopup) {
-            $options = match ($level) {
-                'beginner' => ['challenge', 'none'],
-                'advanced' => ['challenge', 'easy', 'none'],
-                'master' => ['easy', 'none'],
-                default => ['none'],
-            };
+    if ($showPopup && $popupType !== null) {
+        $popupMessage = match ($popupType) {
+            'challenge' => 'You’re almost ready for the next level! Want to try a harder recipe?',
+            'easy' => 'Wanna take it easy? Try an easier recipe!',
+            default => null,
+        };
 
-            $random = $options[array_rand($options)];
-            $popupMessage = match ($random) {
-                'challenge' => 'You’re almost ready for the next level! Want to try a harder recipe?',
-                'easy' => 'You’re close to leveling up! Need a breather with an easier recipe?',
-                default => null,
-            };
+        $currentDifficulty = $order[0];
+        $harderDifficulty = $order[1];
+        $easierDifficulty = $order[2];
 
-            $currentDifficulty = $order[0];
-            $harderDifficulty = $order[1];
-            $easierDifficulty = $order[2];
+        $targetDifficulty = match ($popupType) {
+            'challenge' => $harderDifficulty,
+            'easy' => $easierDifficulty,
+            default => null,
+        };
 
-            $targetDifficulty = match ($random) {
-                'challenge' => $harderDifficulty,
-                'easy' => $easierDifficulty,
-                default => null,
-            };
-
-            if ($targetDifficulty) {
-                $targetRecipe = Recipe::where('difficulty', $targetDifficulty)->inRandomOrder()->first();
-                if ($targetRecipe) {
-                    $redirectRecipeId = $targetRecipe->id;
-                }
+        if ($targetDifficulty) {
+            $targetRecipe = Recipe::where('difficulty', $targetDifficulty)->inRandomOrder()->first();
+            if ($targetRecipe) {
+                $redirectRecipeId = $targetRecipe->id;
             }
         }
-
-        return Inertia::render('Home', [
-            'recipes' => $recipes,
-            'selectedDifficulty' => $difficultyFilter,
-            'popupMessage' => $popupMessage,
-            'redirectRecipeId' => $redirectRecipeId,
-        ]);
     }
+
+    return Inertia::render('Home', [
+        'recipes' => $recipes,
+        'selectedDifficulty' => $difficultyFilter,
+        'popupMessage' => $popupMessage,
+        'redirectRecipeId' => $redirectRecipeId,
+    ]);
+}
+
 
 
 

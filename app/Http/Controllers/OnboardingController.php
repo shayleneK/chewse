@@ -25,17 +25,11 @@ class OnboardingController extends Controller
         // Scale to 0–100
         $scaledValue = ($mean / 5) * 100;
 
-        // Optional: Determine level name based on scaled value
-        $level = match (true) {
-            $scaledValue < 40 => 'Beginner',
-            $scaledValue < 80 => 'Advanced',
-            default           => 'Master',
-        };
+        
 
         // Save to user
         $user = Auth::user();
         $user->level_value = round($scaledValue, 2); // 0–100
-        $user->level = $level;
         $user->has_onboarded = true;
         $user->save();
     }

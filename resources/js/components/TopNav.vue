@@ -28,14 +28,14 @@ console.log("User:", user);
         >
             <div class="container flex justify-between items-center mx-auto">
                 <!-- Logo & Title -->
-                <div class="flex items-center gap-2">
+                <a href="/Home" class="flex items-center gap-2">
                     <img :src="chewseLogo" alt="Logo" class="invert h-10" />
                     <strong class="text-pink-100 font-bold">CHEWSE</strong>
-                </div>
+                </a>
 
                 <!-- Navigation Links -->
                 <div class="flex gap-6 items-center">
-                    <a href="/Home">Home</a>
+                    <a href="/Home" v-if="user">Home</a>
                     <!-- Confidence Badge -->
                     <div v-if="user" class="flex items-center">
                         <span

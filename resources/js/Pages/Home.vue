@@ -79,14 +79,17 @@ function goToRedirectRecipe() {
         >
         <div class="flex justify-between items-center">
             <p>{{ message }}</p>
-            <button
-            v-if="message.includes('challenge') || message.includes('easy')"
+            <div class = "flex ml-auto gap-2">
+                <button
+            v-if="message.includes('harder') || message.includes('easier')"
             @click="goToRedirectRecipe"
             class="ml-4 bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600 text-sm"
             >
             Let's Do It!
             </button>
             <button @click="showPopup = false" class="text-sm text-yellow-600 hover:underline">Dismiss</button>
+            </div>
+            
         </div>
         </div>
 
