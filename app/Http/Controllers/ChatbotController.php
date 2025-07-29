@@ -10,6 +10,23 @@ use Illuminate\Support\Facades\Auth;
 
 class ChatbotController extends Controller
 {
+    private function getYouTubeVideoLink($query)
+    {
+        $apiKey = env('YOUTUBE_API_KEY');
+        $url = "https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=1&q=" . urlencode($query) . "&key={$apiKey}";
+
+        try {
+            $response = Http::get($url)->json();
+            if (!empty($response['items'][0]['id']['videoId'])) {
+                $videoId = $response['items'][0]['id']['videoId'];
+                return "https://www.youtube.com/watch?v={$videoId}";
+            }
+        } catch (\Exception $e) {
+            Log::error('YouTube API Error: ' . $e->getMessage());
+        }
+        return null;
+    }
+
     public function sendMessage(Request $request)
     {
         $user = Auth::user();
@@ -25,6 +42,17 @@ class ChatbotController extends Controller
         if (empty($userMessage)) {
             return response()->json(['error' => 'Message cannot be empty.'], 400);
         }
+
+        $videoLink = null;
+        if (preg_match('/(video|youtube|tutorial)/i', $userMessage)) {
+            // Build a search query using recipe + step context
+            $searchQuery = $recipe['name'] ?? 'cooking tutorial';
+            if (is_numeric($step) && $step > -1 && isset($recipe['steps'][$step])) {
+                $searchQuery .= " - " . $recipe['steps'][$step];
+            }
+            $videoLink = $this->getYouTubeVideoLink($searchQuery);
+        }
+
 
         $apiKey = env('GEMINI_API_KEY', '');
         $apiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={$apiKey}";
@@ -163,6 +191,11 @@ EOT;
                 $botResponseText = preg_replace('/(\*\*|__)(.*?)\1/', '$2', $rawText); // bold
                 $botResponseText = preg_replace('/(\*|_)(.*?)\1/', '$2', $botResponseText); // italic
 
+                if ($videoLink) {
+                    $botResponseText .= "\n\nHere's a helpful video tutorial: " . $videoLink;
+                }
+
+
                 $history[] = [
                     'role' => 'model',
                     'parts' => [['text' => $botResponseText]]
@@ -171,7 +204,8 @@ EOT;
                 return response()->json([
                     'response' => $botResponseText,
                     'history' => $history,
-                    'confidence' => $confidence
+                    'confidence' => $confidence,
+                    'video' => $videoLink
                 ]);
             } else {
                 Log::error('Gemini API Error:', [
