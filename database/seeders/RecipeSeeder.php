@@ -282,6 +282,37 @@ class RecipeSeeder extends Seeder
                     "Drain on wire rack, season with salt and pepper, and serve hot."
                 ]),
                 'difficulty' => 'Hard'
+            ],
+            [
+                'url' => 'https://example.com/brown-butter-recipe', // Replace with the actual URL if available
+                'image' => 'https://example.com/brown-butter.jpg', // Replace with the actual image URL if available
+                'name' => 'Brown Butter',
+                'description' => 'A nutty and flavorful butter that enhances the taste of baked goods. This simple process takes only a few minutes and adds depth to your recipes.',
+                'ingredient' => json_encode([
+                    '12 Tbsp. unsalted butter (cut into pieces)',
+                    '1 cup dark brown sugar (packed, light brown will be ok too)',
+                    '1/2 cup granulated sugar',
+                    '1 large egg (room temperature)',
+                    '1 large egg yolk (room temperature)',
+                    '2 Tbsp. whole milk',
+                    '1 Tbsp. pure vanilla extract',
+                    '2 2/3 cups all-purpose flour (spooned and leveled)',
+                    '1 tsp. salt',
+                    '1 tsp. baking soda',
+                    '1/2 tsp. baking powder',
+                    '2, 4 oz. bars semi-sweet chocolate, chopped, divided',
+                    'flaky sea salt, for finishing'
+                ]),
+                'steps' => json_encode([
+                    "Use a stainless steel skillet. This is best to easily monitor the butter's color and gauge when the butter has browned.",
+                    "Place the unsalted butter in the cold, stainless steel skillet. Unsalted is truly best because salted butter foams more.",
+                    "Melt the butter over medium heat. Swirl the pan occasionally to help the butter melt evenly. As the butter melts, it separates into butter fat and milk solids. The milk solids will naturally sink to the bottom of the pan and begin to brown as they heat up.",
+                    "You'll notice the butter begin to foam. This is good! The foam will begin to subside.",
+                    "Use a heat-resistant spatula to continually gently stir the butter. You'll begin to see tiny specks at the bottom of the pan, constantly stir and scrape so these don't stick. (These are the milk solids that give brown butter its yummy flavor.)",
+                    "As soon as the butter turns chestnut brown and emits a nutty aroma, remove the pan from the heat and scrape the brown butter and all of the yummy brown bits into a heat-proof bowl. It's important to remove to a bowl immediately so the residual heat from the pan doesn't burn the butter.",
+                    "Depending on your heat setting, this process should only take less than 10 minutes."
+                ]),
+                'difficulty' => 'Easy'
             ]
 
 
