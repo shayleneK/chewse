@@ -1,7 +1,7 @@
 <script setup>
 import { Head, Link, useForm, usePage } from "@inertiajs/vue3";
 import { ref } from "vue";
-import chewseLogo from "./chewse_logo.svg";
+import chewseLogo from "./chewse_logo_mascot.svg";
 
 const user = usePage().props.auth.user;
 
@@ -29,7 +29,7 @@ console.log("User:", user);
             <div class="container flex justify-between items-center mx-auto">
                 <!-- Logo & Title -->
                 <div class="flex items-center gap-2">
-                    <img :src="chewseLogo" alt="Logo" class="invert h-10" />
+                    <img :src="chewseLogo" alt="Logo" class="h-10" />
                     <strong class="text-pink-100 font-bold">CHEWSE</strong>
                 </div>
 

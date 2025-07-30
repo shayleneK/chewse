@@ -43,14 +43,14 @@ class ChatbotController extends Controller
             return response()->json(['error' => 'Message cannot be empty.'], 400);
         }
 
+
         $videoLink = null;
         if (preg_match('/(video|youtube|tutorial)/i', $userMessage)) {
             // Build a search query using recipe + step context
             $searchQuery = $recipe['name'] ?? 'cooking tutorial';
-            if (is_numeric($step) && $step > -1 && isset($recipe['steps'][$step])) {
-                $searchQuery .= " - " . $recipe['steps'][$step];
-            }
+
             $videoLink = $this->getYouTubeVideoLink($searchQuery);
+            Log::info('YouTube response', ['video' => $videoLink]);
         }
 
 

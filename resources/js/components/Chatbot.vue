@@ -5,10 +5,11 @@ import { ref, watch, nextTick, computed, onMounted } from "vue";
 import axios from "axios";
 import { marked } from "marked";
 import { usePage } from "@inertiajs/vue3";
+import chewseLogo from "./chewse_logo_mascot.svg";
 
 const page = usePage();
 const isHomepage = computed(() => page.url.toLowerCase().startsWith("/home"));
-const props = defineProps({ recipe: Object });
+const props = defineProps({ recipe: Object, show: Boolean });
 
 const isOpen = ref(false);
 const userInput = ref("");
@@ -25,11 +26,25 @@ function toggleChat() {
     if (isOpen.value) scrollToBottom();
 }
 
+const isFirstOpen = ref(true);
+
+watch(isOpen, (visible) => {
+    if (visible && isFirstOpen.value) {
+        messages.value.push({
+            text: "Hi! I'm Chewsey, please let me know if you need help :3",
+            sender: "bot",
+        });
+        isFirstOpen.value = false;
+    }
+});
+
 onMounted(() => {
     window.addEventListener("show-chatbot", () => {
         showBubble.value = true;
     });
 });
+
+const isTyping = ref(false);
 
 async function sendMessage() {
     const message = userInput.value.trim();
@@ -39,6 +54,7 @@ async function sendMessage() {
     history.value.push({ role: "user", parts: [{ text: message }] });
     userInput.value = "";
     loading.value = true;
+    isTyping.value = true; // show typing indicator
 
     try {
         const res = await axios.post("/chatbot", {
@@ -53,7 +69,6 @@ async function sendMessage() {
         );
         messages.value.push({ text: replyHtml, sender: "bot" });
 
-        // Update history and confidence (backend decides)
         history.value = res.data.history || history.value;
         confidence.value = res.data.confidence || confidence.value;
     } catch (err) {
@@ -64,6 +79,7 @@ async function sendMessage() {
         });
     } finally {
         loading.value = false;
+        isTyping.value = false; // hide typing indicator
         scrollToBottom();
     }
 }
@@ -102,7 +118,7 @@ watch(recipeStep, () => {
             @click="toggleChat"
             class="fixed bottom-4 right-4 bg-pink-500 text-white p-3 rounded-full shadow-lg z-50"
         >
-            💬
+            <img :src="chewseLogo" alt="Logo" class="h-6" />
         </button>
 
         <!-- Chat Panel -->
@@ -135,6 +151,24 @@ watch(recipeStep, () => {
                             v-html="msg.text"
                         ></span>
                     </div>
+                </div>
+                <!-- Typing Indicator -->
+                <div v-if="isTyping" class="mb-2 text-left">
+                    <span
+                        class="inline-block px-3 py-2 rounded-lg bg-gray-200 text-gray-600"
+                    >
+                        <span class="flex gap-1">
+                            <span
+                                class="w-2 h-2 bg-gray-500 rounded-full animate-bounce"
+                            ></span>
+                            <span
+                                class="w-2 h-2 bg-gray-500 rounded-full animate-bounce delay-150"
+                            ></span>
+                            <span
+                                class="w-2 h-2 bg-gray-500 rounded-full animate-bounce delay-300"
+                            ></span>
+                        </span>
+                    </span>
                 </div>
             </div>
 
