@@ -285,7 +285,7 @@ class RecipeSeeder extends Seeder
             ],
             [
                 'url' => 'https://example.com/brown-butter-recipe', // Replace with the actual URL if available
-                'image' => 'https://example.com/brown-butter.jpg', // Replace with the actual image URL if available
+                'image' => 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQjDfkAvs-168rpkxTbWZZTVJbEuuDl0E7zxA&s', // Replace with the actual image URL if available
                 'name' => 'Brown Butter',
                 'description' => 'A nutty and flavorful butter that enhances the taste of baked goods. This simple process takes only a few minutes and adds depth to your recipes.',
                 'ingredient' => json_encode([
