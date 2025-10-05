@@ -35,9 +35,10 @@ console.log("User:", user);
 
                 <!-- Navigation Links -->
                 <div class="flex gap-6 items-center">
-                    <a href="/Home">Home</a>
                     <!-- Confidence Badge -->
                     <div v-if="user" class="flex items-center">
+                        <a href="/Home">Home</a>
+
                         <span
                             :class="[
                                 'px-3 py-1 rounded-full text-xs font-semibold text-white',
